@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Orientation XY Scatter</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+   <style>
+    :root {
+      --bg-color: #121212;
+      --fg-color: #ffffff;
+      --accent-color: #2196f3;
+      --button-bg: #1e1e1e;
+      --card-bg: #1a1a1a;
+      --border-color: #333;
+    }
+
+    body {
+      font-family: sans-serif;
+      background-color: var(--bg-color);
+      color: var(--fg-color);
+      margin: 0;
+      padding: 1rem;
+    }
+
+    h2 {
+      font-size: 1.4rem;
+    }
+
+    button {
+      padding: 0.7rem 1.2rem;
+      font-size: 1rem;
+      margin-bottom: 1rem;
+      border: none;
+      background-color: var(--accent-color);
+      color: white;
+      border-radius: 6px;
+    }
+
+    button:active {
+      background-color: #0d47a1;
+    }
+
+    #status {
+      font-weight: bold;
+      margin-bottom: 1rem;
+    }
+
+    .chart-container {
+      width: 90vw;
+      max-width: 400px;
+      aspect-ratio: 1 / 1;
+      margin: auto;
+      background: var(--card-bg);
+      border-radius: 8px;
+      padding: 0.5rem;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+    }
+
+    .chart-label {
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+      font-size: 1rem;
+      text-align: center;
+    }
+
+    canvas {
+      width: 100% !important;
+      height: 100% !important;
+    }
+  </style>
+</head>
+<body>
+
+<h2>🧭 Orientation to ESP32 via BLE</h2>
+
+<button id="connect-btn">🔌 Connect to ESP32</button>
+<div id="status">Not connected</div>
+
+<div class="chart-container">
+  <div class="chart-label">
+    α: <span id="val_alpha">0.00</span>°<br>
+    β: <span id="val_beta">0.00</span>° | γ: <span id="val_gamma">0.00</span>°
+  </div>
+  <canvas id="chart_orient"></canvas>
+</div>
+
+<script>
+  const serviceUUID = '12345678-1234-1234-1234-1234567890ab';
+  const charUUID = 'abcd1234-5678-90ab-cdef-1234567890ab';
+
+  let bleCharacteristic = null;
+  let isConnected = false;
+
+  document.getElementById('connect-btn').addEventListener('click', async () => {
+    try {
+      const device = await navigator.bluetooth.requestDevice({
+        filters: [{ namePrefix: 'ESP32' }],
+        optionalServices: [serviceUUID]
+      });
+
+      const server = await device.gatt.connect();
+      const service = await server.getPrimaryService(serviceUUID);
+      bleCharacteristic = await service.getCharacteristic(charUUID);
+
+      isConnected = true;
+      document.getElementById('status').textContent = "✅ Connected to ESP32";
+      document.getElementById('status').style.color = "green";
+    } catch (err) {
+      console.error("BLE connection failed:", err);
+      document.getElementById('status').textContent = "❌ BLE connection failed";
+      document.getElementById('status').style.color = "red";
+    }
+  });
+
+  function sendOrientation(alpha, beta, gamma) {
+    if (isConnected && bleCharacteristic) {
+      const payload = { type: "orientation", alpha, beta, gamma };
+      const encoded = new TextEncoder().encode(JSON.stringify(payload));
+      bleCharacteristic.writeValue(encoded).catch(console.error);
+    }
+  }
+
+  function updateValue(id, value) {
+    document.getElementById(id).textContent = value.toFixed(2);
+  }
+
+  const orientChart = new Chart(document.getElementById('chart_orient').getContext('2d'), {
+    type: 'scatter',
+    data: {
+      datasets: [{
+        label: 'β vs γ',
+        data: [],
+        pointBackgroundColor: 'blue',
+        pointRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: false,
+      scales: {
+        x: {
+            min: -45,
+            max: 45,
+            title: { display: true, text: 'β (X)', color: '#ccc' },
+            ticks: { color: '#aaa' },
+            grid: { color: '#888' }
+        },
+        y: {
+            min: -45,
+            max: 45,
+            title: { display: true, text: 'γ (Y)', color: '#ccc' },
+            ticks: { color: '#aaa' },
+            grid: { color: '#888' }
+        }
+      }
+    }
+  });
+
+  function updateChart(beta, gamma) {
+    orientChart.data.datasets[0].data = [{ x: gamma, y: beta }];
+    orientChart.update();
+  }
+
+  window.addEventListener('deviceorientation', (event) => {
+    const alpha = event.alpha ?? 0;
+    const beta  = event.beta ?? 0;
+    const gamma = event.gamma ?? 0;
+
+    updateValue('val_alpha', alpha);
+    updateValue('val_beta', beta);
+    updateValue('val_gamma', gamma);
+
+    updateChart(beta, gamma);
+    sendOrientation(alpha, beta, gamma);
+  });
+</script>
+
+</body>
+</html>
