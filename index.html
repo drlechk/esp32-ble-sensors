@@ -114,7 +114,7 @@
 
   function sendOrientation(alpha, beta, gamma) {
     if (isConnected && bleCharacteristic) {
-      const payload = { type: "orientation", alpha, beta, gamma };
+      const payload = { type: "orientation", alpha, gamma, beta };
       const encoded = new TextEncoder().encode(JSON.stringify(payload));
       bleCharacteristic.writeValue(encoded).catch(console.error);
     }
