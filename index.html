@@ -140,18 +140,42 @@
       animation: false,
       scales: {
         x: {
-            min: -45,
-            max: 45,
-            title: { display: true, text: 'γ (X)', color: '#ccc' },
-            ticks: { color: '#aaa' },
-            grid: { color: '#888' }
+          min: -45,
+          max: 45,
+          ticks: {
+            color: '#aaa',
+            stepSize: 15,
+            callback: value => value.toString(),
+            values: [-45, -30, -15, 0, 15, 30, 45]
+          },
+          grid: {
+            color: (ctx) => ctx.tick.value === 0 ? '#ffffff' : '#888',
+            lineWidth: (ctx) => ctx.tick.value === 0 ? 2 : 1
+          },
+          title: {
+            display: true,
+            text: 'γ (Y)',
+            color: '#ccc'
+          }
         },
         y: {
-            min: -45,
-            max: 45,
-            title: { display: true, text: 'β (Y)', color: '#ccc' },
-            ticks: { color: '#aaa' },
-            grid: { color: '#888' }
+          min: -45,
+          max: 45,
+          ticks: {
+            color: '#aaa',
+            stepSize: 15,
+            callback: value => value.toString(),
+            values: [-45, -30, -15, 0, 15, 30, 45]
+          },
+          grid: {
+            color: (ctx) => ctx.tick.value === 0 ? '#ffffff' : '#888',
+            lineWidth: (ctx) => ctx.tick.value === 0 ? 2 : 1
+          },
+          title: {
+            display: true,
+            text: 'β (X)',
+            color: '#ccc'
+          }
         }
       }
     }
