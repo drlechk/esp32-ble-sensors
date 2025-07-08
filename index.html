@@ -95,7 +95,7 @@
   document.getElementById('connect-btn').addEventListener('click', async () => {
     try {
       const device = await navigator.bluetooth.requestDevice({
-        filters: [{ namePrefix: 'ESP32' }],
+        filters: [{ namePrefix: 'ESP' }],
         optionalServices: [serviceUUID]
       });
 
