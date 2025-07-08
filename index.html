@@ -135,18 +135,19 @@
     }
   });
 
-let lastBeta = 0, lastGamma = 0;
-function sendOrientation(alpha, beta, gamma) {
-  const delta = Math.abs(beta - lastBeta) + Math.abs(gamma - lastGamma);
-  if (delta < 3) return;  // send only on noticeable movement
-
-  lastBeta = beta;
-  lastGamma = gamma;
-
-  if (isConnected && bleCharacteristic) {
-    const payload = { type: "orientation", alpha, beta, gamma };
-    const encoded = new TextEncoder().encode(JSON.stringify(payload));
-    bleCharacteristic.writeValue(encoded).catch(console.error);
+  let lastBeta = 0, lastGamma = 0;
+  function sendOrientation(alpha, beta, gamma) {
+    const delta = Math.abs(beta - lastBeta) + Math.abs(gamma - lastGamma);
+    if (delta < 3) return;  // send only on noticeable movement
+  
+    lastBeta = beta;
+    lastGamma = gamma;
+  
+    if (isConnected && bleCharacteristic) {
+      const payload = { type: "orientation", alpha, beta, gamma };
+      const encoded = new TextEncoder().encode(JSON.stringify(payload));
+      bleCharacteristic.writeValue(encoded).catch(console.error);
+    }
   }
 
   function updateValue(id, value) {
