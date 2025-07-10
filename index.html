@@ -135,11 +135,12 @@
     }
   });
 
-  let lastBeta = 0, lastGamma = 0;
+  let lastAlpha = 0, lastBeta = 0, lastGamma = 0;
   function sendOrientation(alpha, beta, gamma) {
-    const delta = Math.abs(beta - lastBeta) + Math.abs(gamma - lastGamma);
+    const delta = Math.abs(alpha - lastAlpha) + Math.abs(beta - lastBeta) + Math.abs(gamma - lastGamma); 
     if (delta < 3) return;  // send only on noticeable movement
-  
+
+    lastAlpha = alpha;
     lastBeta = beta;
     lastGamma = gamma;
   
